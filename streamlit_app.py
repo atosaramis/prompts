@@ -42,6 +42,3 @@ if api_key:
 
 else:
     st.warning("Please enter your OpenAI API Key to proceed.")
-
-if __name__ == "__main__":
-    st.run()
