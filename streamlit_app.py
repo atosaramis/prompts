@@ -1,38 +1,47 @@
-from collections import namedtuple
-import altair as alt
-import math
-import pandas as pd
 import streamlit as st
+import openai
 
-"""
-# Welcome to Streamlit!
+# Function to call OpenAI API
+def call_openai_api(prompt):
+    response = openai.Completion.create(engine="davinci", prompt=prompt, max_tokens=150)
+    return response.choices[0].text.strip()
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
+# Streamlit UI
+st.title("OpenAI GPT-4 Chatbot")
 
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+# Input for OpenAI API Key
+api_key = st.text_input("Enter your OpenAI API Key:", type="password")
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+if api_key:
+    openai.api_key = api_key
 
+    # Dropdown for action selection
+    action = st.selectbox("Choose an action:", ["Enter a prompt", "Upload a document", "Enter a link to scrape"])
 
-with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+    if action == "Enter a prompt":
+        prompt = st.text_area("Enter your prompt:")
+        if st.button("Submit"):
+            response = call_openai_api(prompt)
+            st.write(response)
 
-    Point = namedtuple('Point', 'x y')
-    data = []
+    elif action == "Upload a document":
+        uploaded_file = st.file_uploader("Upload a document", type=["txt"])
+        if uploaded_file:
+            document = uploaded_file.read().decode()
+            response = call_openai_api(document)
+            st.write(response)
 
-    points_per_turn = total_points / num_turns
+    elif action == "Enter a link to scrape":
+        # Note: Actual scraping requires additional libraries and handling. This is a basic example.
+        link = st.text_input("Enter the link:")
+        if st.button("Scrape and Submit"):
+            # Here, you'd typically scrape the content from the link and then pass it to the API.
+            # For simplicity, we're just passing the link as a prompt.
+            response = call_openai_api(link)
+            st.write(response)
 
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
+else:
+    st.warning("Please enter your OpenAI API Key to proceed.")
 
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+if __name__ == "__main__":
+    st.run()
