@@ -21,8 +21,8 @@ def call_openai_api(prompt, document):
                 "content": prompt
             }
         ],
-        temperature=0.5,
-        max_tokens=150
+        temperature=0.2,
+        max_tokens=2000
     )
     return response['choices'][0]['message']['content']
 
