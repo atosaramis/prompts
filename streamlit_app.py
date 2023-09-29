@@ -3,8 +3,22 @@ import openai
 
 # Function to call OpenAI API
 def call_openai_api(prompt):
-    response = openai.Completion.create(engine="davinci", prompt=prompt, max_tokens=150)
-    return response.choices[0].text.strip()
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.5,
+        max_tokens=150
+    )
+    return response['choices'][0]['message']['content']
 
 # Streamlit UI
 st.title("OpenAI GPT-4 Chatbot")
