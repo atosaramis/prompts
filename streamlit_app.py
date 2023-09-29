@@ -1,14 +1,20 @@
 import streamlit as st
 import openai
+import requests
+from bs4 import BeautifulSoup
 
 # Function to call OpenAI API
-def call_openai_api(prompt):
+def call_openai_api(prompt, document):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {
                 "role": "system",
                 "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": document
             },
             {
                 "role": "user",
@@ -20,6 +26,12 @@ def call_openai_api(prompt):
     )
     return response['choices'][0]['message']['content']
 
+# Function to scrape a webpage
+def scrape_webpage(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    return soup.get_text()
+
 # Streamlit UI
 st.title("OpenAI GPT-4 Chatbot")
 
@@ -30,28 +42,23 @@ if api_key:
     openai.api_key = api_key
 
     # Dropdown for action selection
-    action = st.selectbox("Choose an action:", ["Enter a prompt", "Upload a document", "Enter a link to scrape"])
+    action = st.selectbox("Choose an action:", ["Upload a document", "Enter a link to scrape"])
 
-    if action == "Enter a prompt":
-        prompt = st.text_area("Enter your prompt:")
-        if st.button("Submit"):
-            response = call_openai_api(prompt)
-            st.write(response)
-
-    elif action == "Upload a document":
+    if action == "Upload a document":
         uploaded_file = st.file_uploader("Upload a document", type=["txt"])
         if uploaded_file:
             document = uploaded_file.read().decode()
-            response = call_openai_api(document)
-            st.write(response)
+            prompt = st.text_input("Enter your prompt:")
+            if st.button("Submit"):
+                response = call_openai_api(prompt, document)
+                st.write(response)
 
     elif action == "Enter a link to scrape":
-        # Note: Actual scraping requires additional libraries and handling. This is a basic example.
         link = st.text_input("Enter the link:")
+        prompt = st.text_input("Enter your prompt:")
         if st.button("Scrape and Submit"):
-            # Here, you'd typically scrape the content from the link and then pass it to the API.
-            # For simplicity, we're just passing the link as a prompt.
-            response = call_openai_api(link)
+            document = scrape_webpage(link)
+            response = call_openai_api(prompt, document)
             st.write(response)
 
 else:
