@@ -3,8 +3,8 @@ import openai
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from PyPDF2 import PdfFileReader
 from docx import Document
+import pdfplumber
 
 # Function to call OpenAI API
 def call_openai_api(prompt, document):
@@ -67,8 +67,8 @@ if api_key:
                 soup = BeautifulSoup(uploaded_file.read().decode(), 'html.parser')
                 document = soup.get_text()
             elif uploaded_file.type == "application/pdf":
-                pdf = PdfFileReader(uploaded_file)
-                document = "\n".join(page.extract_text() for page in pdf.pages)
+                with pdfplumber.open(uploaded_file) as pdf:
+                    document = "\n".join(page.extract_text() for page in pdf.pages)
             elif uploaded_file.type == "application/msword":
                 doc = Document(uploaded_file)
                 document = "\n".join(paragraph.text for paragraph in doc.paragraphs)
